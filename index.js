@@ -2,8 +2,8 @@ const express = require('express');
 const fs = require('fs')
 const crypto = require('crypto');
 const http = require('http');
-require('url').URL
 var https = require('https');
+var url = require('url');
 
 const PORT = 8000
 
@@ -26,6 +26,9 @@ app.get("/api/:key/:cmd*",async function(req, res){
 	var key = req.params.key;
 	var cmd = req.params.cmd;
 	var wildcard=req.params[0]
+
+	//add url vars to wildcard
+	wildcard+= "?"+req.url.split("?").slice(1).join("?")
 
 	//check for valid key
 	var userkey;
@@ -73,6 +76,7 @@ function execAPI(key,cmd,wildcard,callback){
 
 			//parse url
 			const url = new URL(wildcard.substring(1))
+			console.log(url)
 	
 			//pick between http and https
 			var client = http;
