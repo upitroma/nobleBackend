@@ -1,13 +1,14 @@
 const express = require('express');
 const fs = require('fs')
-var crypto = require('crypto');
+const crypto = require('crypto');
+const http = require('http');
 
 const PORT = 8000
 
 var app = express();
 
 //http://172.17.0.2/api/12345/self
-app.get("/api/:key/:cmd*",function(req, res){
+app.get("/api/:key/:cmd*",async function(req, res){
 
 	//TODO: add slight random delay to stop timing attacks
 
@@ -36,10 +37,14 @@ app.get("/api/:key/:cmd*",function(req, res){
 				if(new Date(KEYS[i].expiration)>new Date()){
 					console.log("access granted")
 
-					const response = execAPI(KEYS[i],cmd,wildcard)
-					res.writeHead(response.head.code,response.head.body);
-					res.write(response.body);
-					res.end();
+					execAPI(KEYS[i],cmd,wildcard, callback =>{
+						console.log("callback!")
+						res.writeHead(callback.head.code,callback.head.body);
+						res.write(callback.body);
+						res.end();
+					})
+
+					
 				}	
 				break
 			}
@@ -47,25 +52,66 @@ app.get("/api/:key/:cmd*",function(req, res){
 	}
 });
 
-function execAPI(key,cmd,wildcard){
+function execAPI(key,cmd,wildcard,callback){
 	if(cmd=="self" && key.perms.includes("dev")){
-		return{
+		callback({
 			head:{
 				code:200,
 				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
 			},
 			body:fs.readFileSync('./index.js').toString()
-		}
+		})
 	}
-	
+	else if(cmd=="vpn" && key.perms.includes("vpn")){
+		var pageBody="";
+
+		const URL = wildcard.substring(1)
+		console.log(URL)
+
+		const options = {
+			host:"example.com",
+			path:"/"
+		}
+		var request = http.request(options, function (res) {
+			var data = '';
+			res.on('data', function (chunk) {
+				data += chunk;
+			});
+			res.on('end', function () {
+				console.log("why is this not returning");	
+				callback({
+					head:{
+						code:200,
+						metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+					},
+					body:data
+				})
+			});
+		});
+		request.on('error', function (e) {
+			err=e.message 
+			console.log(err);
+			callback({
+				head:{
+					code:200,
+					metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+				},
+				body:err
+			})
+			
+		});
+		request.end();
+		
+	}
+
 	else{
-		return{
+		callback({
 			head:{
 				code:200,
 				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
 			},
 			body:"Error: Invalid cmd or insufficient permissions"
-		}
+		})
 	}
 }
 	/*//	var obj = { key : key, Content : "content " +idk };
