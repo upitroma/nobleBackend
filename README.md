@@ -13,7 +13,7 @@ a place for me to mess around with bad api ideas
 * the key will only be 10 chars long
 * max expiration date will be 7 days
 * once used, the expiration date will change to the current date, effectively disabling the key and logging the time.
-* all otk's will be read only, and will have limited access.
+* all otk's will be read only, and will only have access to a specific file.
 ## example key storage
 ### user side
 example key ```kU84b.kzvZKm545VQUaT3FnLTVFt5TrcMbtM```<br>
@@ -30,7 +30,7 @@ example one time key ```s3A.Pa37f93WaH```
 {
   "name":"otk repo",
   "id":"s3A",
-  "perms":["otk"],
+  "perms":["otk","laz.tar.gz"],
   "expiration":"2021-09-08T01:32:13.543Z",
   "keyHash":"76a5baad9d54bad7d4f8fd63594df2a78dbb5d7cfe9dd945dfbdea2f73b9c1f2"
 }
