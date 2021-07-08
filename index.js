@@ -54,6 +54,7 @@ app.get("/api/:key/:cmd*",async function(req, res){
 });
 
 function execAPI(key,cmd,wildcard,callback){
+	//return the source code for this project
 	if(cmd=="self" && key.perms.includes("dev")){
 		callback({
 			head:{
@@ -63,6 +64,9 @@ function execAPI(key,cmd,wildcard,callback){
 			body:fs.readFileSync('./index.js').toString()
 		})
 	}
+
+	//return the body of the webpage specified
+	//ex mywebsite.com/api/id.key/vpn/example.com
 	else if(cmd=="vpn" && key.perms.includes("vpn")){
 		try{
 			var pageBody="";
@@ -90,6 +94,8 @@ function execAPI(key,cmd,wildcard,callback){
 					})
 				});
 			});
+
+			//if something goes wrong with the request
 			request.on('error', function (e) {
 				err=e.message 
 				console.log(err);
@@ -104,6 +110,8 @@ function execAPI(key,cmd,wildcard,callback){
 			});
 			request.end();
 		}
+
+		//if something else happens
 		catch(e){
 			callback({
 				head:{
@@ -117,6 +125,7 @@ function execAPI(key,cmd,wildcard,callback){
 		
 	}
 
+	//Invalid cmd or insufficient permissions
 	else{
 		callback({
 			head:{
@@ -127,22 +136,7 @@ function execAPI(key,cmd,wildcard,callback){
 		})
 	}
 }
-	/*//	var obj = { key : key, Content : "content " +idk };
-	if(key==12345){
-		if(cmd=="self"){
-			res.writeHead(200, {"Content-Type": "text/plain; charset=UTF-8"});
-			res.write(fs.readFileSync('./index.js').toString());
-			res.end();
-		}
-		else{
-			res.writeHead(404);
-			res.end();
-		}
-		console.log(cmd)
-		console.log(wildcard)
-	}
-});
-*/
+
 app.listen(PORT, () => {
   console.log(`Example app listening at http://localhost:${PORT}`)
 })
