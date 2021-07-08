@@ -5,7 +5,7 @@ const PORT = 80
 
 var app = express();
 
-
+//http://172.17.0.2/api/12345/self
 app.get("/api/:key/:content",function(request, response){
 	var key = request.params.key;
 	var content = request.params.content;
