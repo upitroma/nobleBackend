@@ -2,6 +2,8 @@ const express = require('express');
 const fs = require('fs')
 const crypto = require('crypto');
 const http = require('http');
+require('url').URL
+var https = require('https');
 
 const PORT = 8000
 
@@ -38,7 +40,6 @@ app.get("/api/:key/:cmd*",async function(req, res){
 					console.log("access granted")
 
 					execAPI(KEYS[i],cmd,wildcard, callback =>{
-						console.log("callback!")
 						res.writeHead(callback.head.code,callback.head.body);
 						res.write(callback.body);
 						res.end();
@@ -63,44 +64,56 @@ function execAPI(key,cmd,wildcard,callback){
 		})
 	}
 	else if(cmd=="vpn" && key.perms.includes("vpn")){
-		var pageBody="";
+		try{
+			var pageBody="";
 
-		const URL = wildcard.substring(1)
-		console.log(URL)
-
-		const options = {
-			host:"example.com",
-			path:"/"
-		}
-		var request = http.request(options, function (res) {
-			var data = '';
-			res.on('data', function (chunk) {
-				data += chunk;
+			//parse url
+			const url = new URL(wildcard.substring(1))
+	
+			//pick between http and https
+			var client = http;
+			client=(url.protocol=="https:") ? https:client;
+	
+			//make the request
+			var request = client.request(url, function (res) {
+				var data = '';
+				res.on('data', function (chunk) {
+					data += chunk;
+				});
+				res.on('end', function () {
+					callback({
+						head:{
+							code:200,
+							metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+						},
+						body:data
+					})
+				});
 			});
-			res.on('end', function () {
-				console.log("why is this not returning");	
+			request.on('error', function (e) {
+				err=e.message 
+				console.log(err);
 				callback({
 					head:{
 						code:200,
 						metadata:{"Content-Type": "text/plain; charset=UTF-8"}
 					},
-					body:data
+					body:err
 				})
+				
 			});
-		});
-		request.on('error', function (e) {
-			err=e.message 
-			console.log(err);
+			request.end();
+		}
+		catch(e){
 			callback({
 				head:{
 					code:200,
 					metadata:{"Content-Type": "text/plain; charset=UTF-8"}
 				},
-				body:err
+				body:e.message
 			})
-			
-		});
-		request.end();
+		}
+		
 		
 	}
 
