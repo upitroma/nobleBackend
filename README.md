@@ -7,6 +7,7 @@ a place for me to mess around with bad api ideas
 * permissions(user defined)
 * name (user defined)
 * all keys will be in the format ```${id}.${key}```
+* every key usage would be logged (obviously)
 ## one time key attributes
 * every attribute above with these changes
 * the id will only be 3 chars long 
@@ -35,3 +36,10 @@ example one time key ```s3A.Pa37f93WaH```
   "keyHash":"76a5baad9d54bad7d4f8fd63594df2a78dbb5d7cfe9dd945dfbdea2f73b9c1f2"
 }
 ```
+
+# bad ideas for what to do with this power
+* pseudo vpn.
+  * website.com/api/id.key/vpn/anotherwebsite.com/some/file would make the server fetch the content and return it to the user.
+* script staging
+* stealth file uploading website.com/api/id.key/up/{base64 file keeping the url under 2048 chars long}
+* normal file uploading via post request
