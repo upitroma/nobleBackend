@@ -7,6 +7,10 @@ const url = require('url');
 
 const PORT = 8000
 
+//colors
+CReset = "\x1b[0m"
+CYellow = "\x1b[33m"
+
 /*
 TODO:
 ssl
@@ -48,7 +52,7 @@ app.get("/api/:key/:cmd*",async function(req, res){
 			if(hash==KEYS[i].keyHash){
 				//check expiration date
 				if(new Date(KEYS[i].expiration)>new Date()){
-					console.log("access granted to ID: " + KEYS[i].id +" CMD: "+cmd+"/"+wildcard)
+					console.log("access granted to "+CYellow+"ID: "+CReset+ KEYS[i].id+CYellow+" CMD: "+CReset+cmd+"/"+wildcard)
 
 					execAPI(KEYS[i],cmd,wildcard, callback =>{
 						res.writeHead(callback.head.code,callback.head.body);
@@ -71,6 +75,26 @@ function execAPI(key,cmd,wildcard,callback){
 				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
 			},
 			body:fs.readFileSync('./index.js').toString()
+		})
+	}
+
+	else if(cmd=="perms"){
+		callback({
+			head:{
+				code:200,
+				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+			},
+			body:key.perms.toString()
+		})
+	}
+
+	else if(cmd=="date" && key.perms.includes("dev")){
+		callback({
+			head:{
+				code:200,
+				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+			},
+			body:new Date().toISOString()
 		})
 	}
 
@@ -138,7 +162,6 @@ function execAPI(key,cmd,wildcard,callback){
 					},
 					body:err
 				})
-				
 			});
 			request.end();
 		}
