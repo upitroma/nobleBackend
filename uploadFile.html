@@ -1,0 +1,19 @@
+<input id="fileUpload" type="file" />
+<input onclick="uploadFile()" type="button" value="upload file"/>
+<p id="devOutput"></p>
+<script>
+    const reader = new FileReader();
+    function uploadFile(){
+        reader.onloadend = () => {
+        // use a regex to remove data url part
+        const base64String = reader.result
+            .replace("data:", "")
+            .replace(/^.+,/, "");
+
+        // log to console
+        // logs wL2dvYWwgbW9yZ...
+        console.log(base64String);
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
