@@ -7,16 +7,23 @@ const url = require('url');
 
 const PORT = 8000
 
+/*
+TODO:
+ssl
+method of generating keys
+logging
+dockerfile
+file uploading
+	asymetric encryption of said files
+
+*/
+
 var app = express();
 
 //http://172.17.0.2/api/12345/self
 app.get("/api/:key/:cmd*",async function(req, res){
 
 	//TODO: add slight random delay to stop timing attacks
-
-	//response
-	var resHeader;
-	var resBody;
 
 	//get keys from secrets.json
 	var raw = fs.readFileSync('secrets.json');
@@ -34,8 +41,6 @@ app.get("/api/:key/:cmd*",async function(req, res){
 	}
 
 	//check for valid key
-	//var userkey;
-	//var accessGranted=false
 	var keyArr = key.split(".");
 	for(i=0;i<KEYS.length;i++){
 		if(keyArr[0]==KEYS[i].id){
@@ -50,8 +55,6 @@ app.get("/api/:key/:cmd*",async function(req, res){
 						res.write(callback.body);
 						res.end();
 					})
-
-					
 				}	
 				break
 			}
@@ -71,7 +74,18 @@ function execAPI(key,cmd,wildcard,callback){
 		})
 	}
 
-	//returns hash of input
+	//returns the wildcard
+	else if(cmd=="wildcard" && key.perms.includes("dev")){
+		callback({
+			head:{
+				code:200,
+				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+			},
+			body:wildcard
+		})
+	}
+
+	//returns hash of wildcard
 	else if(cmd=="hash" && key.perms.includes("dev")){
 		callback({
 			head:{
