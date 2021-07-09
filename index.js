@@ -2,8 +2,8 @@ const express = require('express');
 const fs = require('fs')
 const crypto = require('crypto');
 const http = require('http');
-var https = require('https');
-var url = require('url');
+const https = require('https');
+const url = require('url');
 
 const PORT = 8000
 
@@ -25,14 +25,17 @@ app.get("/api/:key/:cmd*",async function(req, res){
 	//get vars from url
 	var key = req.params.key;
 	var cmd = req.params.cmd;
-	var wildcard=req.params[0]
+	var wildcard=req.params[0].substring(1)
 
-	//add url vars to wildcard
-	wildcard+= "?"+req.url.split("?").slice(1).join("?")
+	//add queries to wildcard
+	var query=req.url.split("?").slice(1).join("?")
+	if(query.length>0){
+		wildcard+="?"+query
+	}
 
 	//check for valid key
-	var userkey;
-	var accessGranted=false
+	//var userkey;
+	//var accessGranted=false
 	var keyArr = key.split(".");
 	for(i=0;i<KEYS.length;i++){
 		if(keyArr[0]==KEYS[i].id){
@@ -40,7 +43,7 @@ app.get("/api/:key/:cmd*",async function(req, res){
 			if(hash==KEYS[i].keyHash){
 				//check expiration date
 				if(new Date(KEYS[i].expiration)>new Date()){
-					console.log("access granted")
+					console.log("access granted to ID: " + KEYS[i].id +" CMD: "+cmd+"/"+wildcard)
 
 					execAPI(KEYS[i],cmd,wildcard, callback =>{
 						res.writeHead(callback.head.code,callback.head.body);
@@ -68,6 +71,18 @@ function execAPI(key,cmd,wildcard,callback){
 		})
 	}
 
+	//returns hash of input
+	else if(cmd=="hash" && key.perms.includes("dev")){
+		callback({
+			head:{
+				code:200,
+				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+			},
+			body:crypto.createHash('sha256').update(wildcard).digest('hex')
+		})
+	}
+
+
 	//return the body of the webpage specified
 	//ex mywebsite.com/api/id.key/vpn/example.com
 	else if(cmd=="vpn" && key.perms.includes("vpn")){
@@ -75,8 +90,7 @@ function execAPI(key,cmd,wildcard,callback){
 			var pageBody="";
 
 			//parse url
-			const url = new URL(wildcard.substring(1))
-			console.log(url)
+			const url = new URL(wildcard)
 	
 			//pick between http and https
 			var client = http;
