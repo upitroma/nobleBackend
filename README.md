@@ -21,6 +21,7 @@ example key ```kU84b.kzvZKm545VQUaT3FnLTVFt5TrcMbtM```<br>
 example one time key ```s3A.Pa37f93WaH```
 ### server side
 ```json
+[
 {
   "name":"read and write repo access",
   "id":"kU84b",
@@ -35,11 +36,18 @@ example one time key ```s3A.Pa37f93WaH```
   "expiration":"2021-09-08T01:32:13.543Z",
   "keyHash":"76a5baad9d54bad7d4f8fd63594df2a78dbb5d7cfe9dd945dfbdea2f73b9c1f2"
 }
+]
 ```
 
 # bad ideas for what to do with this power
 * pseudo vpn.
   * website.com/api/id.key/vpn/anotherwebsite.com/some/file would make the server fetch the content and return it to the user.
 * script staging
-* stealth file uploading website.com/api/id.key/up/{base64 file keeping the url under 2048 chars long}
+* stealth file uploading website.com/api/id.key/up/{base64} file keeping the url under 2048 chars long}
 * normal file uploading via post request
+
+# todo
+* ability to add keys from the api
+  * maybe with a password or pgp key?
+* hash function website.com/api/id.key/hash/string would return a sha256 hash of that string
+* module functionality to keep api code organized?
