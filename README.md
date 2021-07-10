@@ -1,5 +1,9 @@
 # nodeApiTesting
 a place for me to mess around with bad api ideas
+## setup
+generate ssl cert ```openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out app.crt -keyout app.key```
+make a ```secrets.json```. (you can use example.secrets.json as a template)
+run ```node index.js```
 ## api key attributes
 * id (rng)(5 chars)
 * key (rng)(30 chars a-z,A-Z,0-9, no look alike chars)(stored as sha256)

@@ -192,6 +192,17 @@ function execAPI(key,cmd,wildcard,callback){
 	}
 }
 
+/*
 app.listen(PORT, () => {
   console.log(`Example app listening at http://localhost:${PORT}`)
+})
+*/
+//module.exports = app;
+
+https.createServer({
+	key: fs.readFileSync('./app.key'),
+	cert: fs.readFileSync('./app.crt')
+  }, app)
+  .listen(8000, function () {
+	console.log(`Example app listening at http://localhost:${PORT}`)
 })

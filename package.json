@@ -12,6 +12,7 @@
     "crypto": "^1.0.1",
     "express": "^4.17.1",
     "fs": "^0.0.1-security",
+    "greenlock-express": "^4.0.3",
     "http": "^0.0.1-security"
   }
 }
