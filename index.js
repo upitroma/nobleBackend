@@ -67,8 +67,9 @@ app.get("/api/:key/:cmd*",async function(req, res){
 });
 
 function execAPI(key,cmd,wildcard,callback){
+
 	//return the source code for this project
-	if(cmd=="self" && key.perms.includes("dev")){
+	if(cmd=="self" && key.perms.includes("admin")){
 		callback({
 			head:{
 				code:200,
@@ -78,6 +79,88 @@ function execAPI(key,cmd,wildcard,callback){
 		})
 	}
 
+	//return a key with given properties
+	//ex mywebsite.com/api/id.key/keygen/name=exampleKey&id=exampleid&perms=dev,vpn&expiration=2021-07-17T03:30:55.632Z
+	if(cmd=="tokengen" && key.perms.includes("dev")){
+
+		var err=""
+
+		plus30days=new Date(new Date().getTime()+30*24*60*60*1000).toISOString()
+
+		var keyProperties= {
+			name: "placeholder key",
+			id: "placeholder",
+			perms: [],
+			expiration: plus30days,
+			keyHash: ""
+		}
+
+		//get properties from query
+		var input=wildcard.split("&")
+		input.forEach(function(property){
+			var split=property.split("=")
+			var key=split[0]
+			var value=split[1]
+			
+			if(key=="name"){
+				keyProperties.name=value
+			}
+			else if(key=="id"){
+				keyProperties.id=value
+			}
+			else if(key=="perms"){
+				value.split(",").forEach(function(perm){
+					keyProperties.perms.push(perm)
+				})
+			}
+			else if(key=="expiration"){
+				keyProperties.expiration=value
+			}
+			
+			else{
+				err="invalid tokengen property: "+property+"\n\n"
+				err+="available properties:\n"
+				err+="name=string\n"
+				err+="id=string\n"
+				err+="perms=string,comma,seporated\n"
+				err+="expiration=ISOString"
+			}
+		})
+
+		//generate 20 char alphanumeric token
+		var token="";
+		var possible="ABCDEFGHJKLMNPRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"; //excluding look alike chars
+		for(i=0;i<20;i++){
+			token+=possible.charAt(Math.floor(Math.random()*possible.length));
+		}
+		keyProperties.keyHash=crypto.createHash('sha256').update(token).digest('hex')
+
+		output = "[\n{\"key\":\""+keyProperties.id+"."+token+"\"},\n"
+		output+=JSON.stringify(keyProperties)+"\n]"
+
+
+		if(err==""){
+			callback({
+				head:{
+					code:200,
+					metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+				},
+				body:output
+			})
+		}
+		else{
+			callback({
+				head:{
+					code:200,
+					metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+				},
+				body:err
+			})
+		}
+
+	}
+
+	//return the permissions for the active key
 	else if(cmd=="perms"){
 		callback({
 			head:{
@@ -88,6 +171,7 @@ function execAPI(key,cmd,wildcard,callback){
 		})
 	}
 
+	//return the current date
 	else if(cmd=="date" && key.perms.includes("dev")){
 		callback({
 			head:{
@@ -110,6 +194,7 @@ function execAPI(key,cmd,wildcard,callback){
 	}
 
 	//returns hash of wildcard
+	//ex mywebsite.com/api/id.key/hash/wildcard
 	else if(cmd=="hash" && key.perms.includes("dev")){
 		callback({
 			head:{
