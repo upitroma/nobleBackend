@@ -54,7 +54,7 @@ app.get("/api/:key/:cmd*",async function(req, res){
 				if(new Date(KEYS[i].expiration)>new Date()){
 
 					//key is valid
-					console.log("access granted from: " + req.ip +" to "+CYellow+"ID: "+CReset+ KEYS[i].id+CYellow+" CMD: "+CReset+cmd+"/"+wildcard)
+					console.log("access granted from: " + req.ip.split(':')[3]  +" to "+CYellow+"ID: "+CReset+ KEYS[i].id+CYellow+" CMD: "+CReset+cmd+"/"+wildcard)
 
 					execAPI(KEYS[i],cmd,wildcard, callback =>{
 						res.writeHead(callback.head.code,callback.head.metadata);
