@@ -52,10 +52,12 @@ app.get("/api/:key/:cmd*",async function(req, res){
 			if(hash==KEYS[i].keyHash){
 				//check expiration date
 				if(new Date(KEYS[i].expiration)>new Date()){
-					console.log("access granted to "+CYellow+"ID: "+CReset+ KEYS[i].id+CYellow+" CMD: "+CReset+cmd+"/"+wildcard)
+
+					//key is valid
+					console.log("access granted from: " + req.ip +" to "+CYellow+"ID: "+CReset+ KEYS[i].id+CYellow+" CMD: "+CReset+cmd+"/"+wildcard)
 
 					execAPI(KEYS[i],cmd,wildcard, callback =>{
-						res.writeHead(callback.head.code,callback.head.body);
+						res.writeHead(callback.head.code,callback.head.metadata);
 						res.write(callback.body);
 						res.end();
 					})
@@ -69,7 +71,7 @@ app.get("/api/:key/:cmd*",async function(req, res){
 function execAPI(key,cmd,wildcard,callback){
 
 	//return the source code for this project
-	if(cmd=="self" && key.perms.includes("admin")){
+	if(cmd=="source" && key.perms.includes("admin")){
 		callback({
 			head:{
 				code:200,
@@ -79,9 +81,20 @@ function execAPI(key,cmd,wildcard,callback){
 		})
 	}
 
+	//return info on used key
+	else if(cmd=="self" && key.perms.includes("dev")){
+		callback({
+			head:{
+				code:200,
+				metadata:{"Content-Type": "application/json"}
+			},
+			body:JSON.stringify(key)
+		})
+	}
+
 	//return a key with given properties
 	//ex mywebsite.com/api/id.key/keygen/name=exampleKey&id=exampleid&perms=dev,vpn&expiration=2021-07-17T03:30:55.632Z
-	if(cmd=="tokengen" && key.perms.includes("dev")){
+	else if(cmd=="tokengen" && key.perms.includes("dev")){
 
 		var err=""
 
@@ -143,7 +156,7 @@ function execAPI(key,cmd,wildcard,callback){
 			callback({
 				head:{
 					code:200,
-					metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+					metadata:{"Content-Type": "application/json"}
 				},
 				body:output
 			})
@@ -278,6 +291,7 @@ function execAPI(key,cmd,wildcard,callback){
 }
 
 /*
+//for http
 app.listen(PORT, () => {
   console.log(`Example app listening at http://localhost:${PORT}`)
 })
@@ -288,6 +302,6 @@ https.createServer({
 	key: fs.readFileSync('./app.key'),
 	cert: fs.readFileSync('./app.crt')
   }, app)
-  .listen(8000, function () {
-	console.log(`Example app listening at http://localhost:${PORT}`)
+  .listen(PORT, function () {
+	console.log(`Example app listening at https://localhost:${PORT}`)
 })
