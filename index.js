@@ -52,6 +52,29 @@ app.get("/api/:key/:cmd*",async function(req, res){
 	}
 });
 
+//https://stackoverflow.com/questions/17981677/using-post-data-to-write-to-local-file-with-node-js-and-express
+//curl -d 'this string will be saved to a file' -X POST https://[server]]/api/id.key/upload
+app.post('/api/:key/upload', function(req, res) {
+	var key = checkKey(req.params.key);
+	if(key){
+		var body = ''
+		filePath = 'uploads.txt'
+		req.on('data', function(data) {
+			body += data
+		});
+		body+="\n"
+
+		req.on('end', function (){
+			console.log(body)
+			fs.appendFile(filePath, body, function() {
+				res.end()
+			})
+		});
+		
+	}
+});
+
+
 function checkKey(key){
 	//get keys from secrets.json
 	var raw = fs.readFileSync('secrets.json');
