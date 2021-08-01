@@ -26,23 +26,36 @@ var app = express();
 
 //http://172.17.0.2/api/12345/self
 app.get("/api/:key/:cmd*",async function(req, res){
+	var key = checkKey(req.params.key);
+	if(key){
+		//get vars from url
+		var cmd = req.params.cmd;
+		var wildcard=req.params[0].substring(1)
+		var query=req.url.split("?").slice(1).join("?") 
+		
+		//add queries to wildcard
+		if(query.length>0){
+			wildcard+="?"+query
+		}
 
-	//TODO: add slight random delay to stop timing attacks
 
+		console.log("access granted from: " + req.ip.split(':')[3]  +" to "+CYellow+"ID: "+CReset+ key.id+CYellow+" CMD: "+CReset+cmd+"/"+wildcard)
+
+		execAPI(key,cmd,wildcard, callback =>{
+			res.writeHead(callback.head.code,callback.head.metadata);
+			res.write(callback.body);
+			res.end();
+		})
+	}
+	else{
+		console.log("access denied from: " + req.ip.split(':')[3])
+	}
+});
+
+function checkKey(key){
 	//get keys from secrets.json
 	var raw = fs.readFileSync('secrets.json');
 	KEYS = JSON.parse(raw);
-	
-	//get vars from url
-	var key = req.params.key;
-	var cmd = req.params.cmd;
-	var wildcard=req.params[0].substring(1)
-
-	//add queries to wildcard
-	var query=req.url.split("?").slice(1).join("?")
-	if(query.length>0){
-		wildcard+="?"+query
-	}
 
 	//check for valid key
 	var keyArr = key.split(".");
@@ -52,21 +65,13 @@ app.get("/api/:key/:cmd*",async function(req, res){
 			if(hash==KEYS[i].keyHash){
 				//check expiration date
 				if(new Date(KEYS[i].expiration)>new Date()){
-
-					//key is valid
-					console.log("access granted from: " + req.ip.split(':')[3]  +" to "+CYellow+"ID: "+CReset+ KEYS[i].id+CYellow+" CMD: "+CReset+cmd+"/"+wildcard)
-
-					execAPI(KEYS[i],cmd,wildcard, callback =>{
-						res.writeHead(callback.head.code,callback.head.metadata);
-						res.write(callback.body);
-						res.end();
-					})
-				}	
-				break
+					return KEYS[i]
+				}
 			}
 		}
 	}
-});
+	return false
+}
 
 function execAPI(key,cmd,wildcard,callback){
 
@@ -217,7 +222,6 @@ function execAPI(key,cmd,wildcard,callback){
 			body:crypto.createHash('sha256').update(wildcard).digest('hex')
 		})
 	}
-
 
 	//return the body of the webpage specified
 	//ex mywebsite.com/api/id.key/vpn/example.com
