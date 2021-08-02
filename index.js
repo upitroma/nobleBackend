@@ -13,13 +13,8 @@ CYellow = "\x1b[33m"
 
 /*
 TODO:
-ssl
-method of generating keys
-logging
 dockerfile
-file uploading
-	asymetric encryption of said files
-
+asymetric encryption of uploaded files (not needed)
 */
 
 var app = express();
@@ -122,7 +117,7 @@ function execAPI(key,cmd,wildcard,callback){
 
 	//return a key with given properties
 	//ex mywebsite.com/api/id.key/keygen/name=exampleKey&id=exampleid&perms=dev,vpn&expiration=2021-07-17T03:30:55.632Z
-	else if(cmd=="tokengen" && key.perms.includes("dev")){
+	else if(cmd=="keygen" && key.perms.includes("dev")){
 
 		var err=""
 
