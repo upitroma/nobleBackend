@@ -4,3 +4,4 @@ secrets.json
 app.crt
 app.key
 uploads.txt
+website/
