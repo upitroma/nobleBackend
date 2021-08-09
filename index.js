@@ -19,6 +19,8 @@ asymetric encryption of uploaded files (not needed)
 
 var app = express();
 
+app.use(express.static('website'))
+
 //http://172.17.0.2/api/12345/self
 app.get("/api/:key/:cmd*",async function(req, res){
 	var key = checkKey(req.params.key);
