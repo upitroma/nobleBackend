@@ -244,8 +244,6 @@ function execAPI(key,cmd,wildcard,req,callback){
 	}
 
 	//stores an ip address with a hostname and adds it to dyndns.json
-	//if no ip is provided, it will use the ip of the request
-	//if no hostname is provided, it will use the hostname of the request
 	//ex mywebsite.com/api/id.key/dyndns/ip=1.2.3.4&hostname=example
 	//FIXME: add rate limiting to limit spam and abuse
 	else if(cmd=="dnsupdate" && key.perms.includes("dns_write")){
@@ -312,6 +310,31 @@ function execAPI(key,cmd,wildcard,req,callback){
 			})
 			fs.writeFileSync("dyndns.json", JSON.stringify(dyndns, null, 4), "utf8")
 			response="Added "+hostname+" to dyndns.json"
+		}
+
+		callback({
+			head:{
+				code:200,
+				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+			},
+			body:response
+		})
+		
+	}
+
+	//returns the ip address of a given hostname from dyndns.json
+	else if(cmd=="dns" && (key.perms.includes("dns") || key.perms.includes("dns_write"))){
+		var response=""
+		var foundhostname=false
+		var dyndns=JSON.parse(fs.readFileSync("dyndns.json", "utf8"))
+		dyndns.forEach(function(entry){
+			if(entry.hostname==wildcard){
+				response=entry.ip
+				foundhostname=true
+			}
+		})
+		if(!foundhostname){
+			response="hostname not found"
 		}
 
 		callback({

@@ -5,3 +5,4 @@ app.crt
 app.key
 uploads.txt
 website/
+dyndns.json
