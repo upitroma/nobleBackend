@@ -38,7 +38,7 @@ app.get("/api/:key/:cmd*",async function(req, res){
 
 		console.log("access granted from: " + req.ip.split(':')[3]  +" to "+CYellow+"ID: "+CReset+ key.id+CYellow+" CMD: "+CReset+cmd+"/"+wildcard)
 
-		execAPI(key,cmd,wildcard, callback =>{
+		execAPI(key,cmd,wildcard,req, callback =>{
 			res.writeHead(callback.head.code,callback.head.metadata);
 			res.write(callback.body);
 			res.end();
@@ -93,7 +93,7 @@ function checkKey(key){
 	return false
 }
 
-function execAPI(key,cmd,wildcard,callback){
+function execAPI(key,cmd,wildcard,req,callback){
 
 	//return the source code for this project
 	if(cmd=="source" && key.perms.includes("admin")){
@@ -243,6 +243,87 @@ function execAPI(key,cmd,wildcard,callback){
 		})
 	}
 
+	//stores an ip address with a hostname and adds it to dyndns.json
+	//if no ip is provided, it will use the ip of the request
+	//if no hostname is provided, it will use the hostname of the request
+	//ex mywebsite.com/api/id.key/dyndns/ip=1.2.3.4&hostname=example
+	//FIXME: add rate limiting to limit spam and abuse
+	else if(cmd=="dnsupdate" && key.perms.includes("dns_write")){
+		var ip=""
+		var hostname=""
+		var overwrite=false
+
+		var response=""
+
+		//get ip and hostname
+		wildcard.split("&").forEach(function(property){
+			var split=property.split("=")
+			var key=split[0]
+			var value=split[1]
+			if (key=="ip"){
+				ip=value
+			}
+			else if(key=="hostname"){
+				hostname=value
+			}
+			else if(key=="overwrite" && value=="true"){
+				overwrite=true
+			}
+		})
+		if(!ip){
+			ip=req.headers['x-forwarded-for'] || req.ip.split(':')[3]
+		}
+		if(!hostname){
+			hostname=req.headers.host || req.headers.hostname || "unknown"
+		}
+
+		//sanitize hostname and ip
+		hostname=hostname.replace(/[^a-zA-Z0-9-]/g,"").substr(0,20)
+		ip=ip.replace(/[^0-9.]/g,"").substr(0,15)
+
+		//create dyndns.json if it doesn't exist
+		if(!fs.existsSync('dyndns.json')){
+			fs.writeFileSync('dyndns.json', '[]')
+		}
+
+		var dyndns=JSON.parse(fs.readFileSync("dyndns.json", "utf8"))
+
+		//check if hostname already exists, ignore if overwrite is true
+		var exists=false
+		dyndns.forEach(function(entry){
+			if(entry.hostname==hostname){
+				exists=true
+				if(overwrite){
+					//replace entry
+					entry.ip=ip
+					fs.writeFileSync("dyndns.json", JSON.stringify(dyndns, null, 4), "utf8")
+					response="Updated "+hostname+" to "+ip
+				}
+				else{
+					response="hostname allready assigned to "+entry.ip+". set overwrite=true to your query to force the change"
+				}
+			}
+		})
+		if(!exists){
+			//add new entry
+			dyndns.push({
+				ip: ip,
+				hostname: hostname
+			})
+			fs.writeFileSync("dyndns.json", JSON.stringify(dyndns, null, 4), "utf8")
+			response="Added "+hostname+" to dyndns.json"
+		}
+
+		callback({
+			head:{
+				code:200,
+				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
+			},
+			body:response
+		})
+		
+	}
+
 	//return the body of the webpage specified
 	//ex mywebsite.com/api/id.key/vpn/example.com
 	else if(cmd=="vpn" && key.perms.includes("vpn")){
@@ -306,7 +387,7 @@ function execAPI(key,cmd,wildcard,callback){
 	else{
 		callback({
 			head:{
-				code:200,
+				code:403,
 				metadata:{"Content-Type": "text/plain; charset=UTF-8"}
 			},
 			body:"Error: Invalid cmd or insufficient permissions"
