@@ -5,7 +5,7 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 
-const PORT = 8000
+const PORT = 443
 
 //colors
 CReset = "\x1b[0m"
@@ -70,6 +70,7 @@ app.get("/api/:key/:cmd*",async function(req, res){
 		
 // 	}
 // });
+
 
 
 function checkKey(key){

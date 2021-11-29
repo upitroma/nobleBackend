@@ -15,6 +15,11 @@ a place for me to mess around with bad api ideas
 * all keys will be in the format ```${id}.${key}```
 * every key usage would be logged (obviously)
 
+## key types
+* root key - only key that can create user keys
+* user keys - can make application keys, can't make user keys
+* application keys - can't make any other keys, limited permissions
+
 # current commands
 * vpn - returns the content of another website
   * requires ```vpn``` perm
