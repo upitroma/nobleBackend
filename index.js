@@ -97,7 +97,7 @@ function checkKey(key){
 function execAPI(key,cmd,wildcard,req,callback){
 
 	//return the source code for this project
-	if(cmd=="source" && key.perms.includes("admin")){
+	if(cmd=="source" && key.perms.includes("root")){
 		callback({
 			head:{
 				code:200,
